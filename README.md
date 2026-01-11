@@ -1,210 +1,220 @@
 # ResistPipe
-**Overview**
 
-  
+A simple Java-based bioinformatics tool for detecting known antibiotic resistance genes in unknown DNA sequences using reference-based, k-mer matching. ResistPipe is intended for educational and exploratory analyses (not clinical diagnostics).
 
-This project is a Java-based bioinformatics tool designed to detect known antibiotic resistance genes within an unknown DNA sequence using reference-based sequence comparison. The program compares an unknown nucleotide sequence against a curated set of resistance gene sequences obtained from public databases and reports potential matches.
+---
 
-  
+## Table of contents
 
-In addition to generating a detailed text report, the program produces a visual ASCII-based summary to help users quickly interpret results.
+- [Overview](#overview)
+- [Biological problem](#biological-problem)
+- [Key features](#key-features)
+- [Project structure](#project-structure)
+- [Requirements](#requirements)
+- [Build and run](#build-and-run)
+- [Command line examples](#command-line-examples)
+- [Input formats](#input-formats)
+- [Output files and visualization](#output-files-and-visualization)
+- [How it works (brief)](#how-it-works-brief)
+- [Configuration & tuning](#configuration--tuning)
+- [Limitations & disclaimer](#limitations--disclaimer)
+- [Contributing](#contributing)
+- [License](#license)
+- [Acknowledgements & data sources](#acknowledgements--data-sources)
+- [Contact](#contact)
 
-  
+---
 
-This project was developed as a comprehensive programming assignment demonstrating Java design, file handling, algorithmic thinking, and biological data analysis.
+## Overview
 
-  
+ResistPipe scans an unknown DNA sequence for sequence similarity to a set of known antibiotic resistance genes. It reports per-gene match counts, longest-match lengths, and produces a compact ASCII bar-chart to summarize match strengths in the terminal. The tool is intended as a teaching example demonstrating file parsing, k-mer analysis, and simple visualization in Java.
 
-**Biological Problem**
+---
 
-  
+## Biological problem
 
-Antibiotic resistance genes allow bacteria to survive exposure to antimicrobial compounds. Identifying these genes in genomic or environmental samples is an important first step in resistance surveillance and research.
+Antibiotic resistance genes enable bacteria to survive antibiotic exposure. Detecting these genes in genomes or metagenomic samples helps researchers screen for resistance determinants. ResistPipe performs a quick reference-based screen to detect the presence and approximate strength of matches to known resistance gene sequences.
 
-  
+---
 
-This program addresses the question:
+## Key features
 
-  
+- FASTA parser for reference and query sequences
+- K-mer–based sequence matching (fast, simple)
+- Per-gene match counts and longest-match length reporting
+- Text summary report (`results_summary.txt`)
+- ASCII bar-chart visualization printed to the terminal
+- Designed for educational use and small datasets
 
-Does an unknown DNA sequence contain known antibiotic resistance genes?
+---
 
-  
+## Project structure
 
-The tool is intended for educational and preliminary screening purposes only.
+- `src/`  
+  - `io/FastaReader.java`  
+  - `FileWriterUtil.java`  
+  - `model/GeneMatchResult.java`  
+  - `analysis/KmerGenerator.java`  
+  - `analysis/SequenceMatcher.java`  
+  - `analysis/MatchScorer.java`  
+  - `visualization/AsciiBarChart.java`  
+  - `Main.java`  
+- `sample_data/`  
+  - `resistance_genes.fasta`  
+  - `unknown_sequence.fasta`  
+- `output/`  
+  - `results_summary.txt`  
+  - `gene_match_counts.csv`
 
-  
+---
 
-**Features**
+## Requirements
 
-  
+- Java 8+ (JDK)
+- Command-line shell (Linux/macOS/Windows)
+- Small datasets — memory and performance depend on input sizes and k-mer configuration
 
-The program includes the following features:
+---
 
-  
+## Build and run
 
-• Parses FASTA-formatted DNA sequences• Screens unknown sequences against known resistance genes• Uses a k-mer–based matching strategy• Reports the number of matches per gene• Reports the longest contiguous match length• Generates a text-based summary report• Generates an ASCII bar chart visualization• Modular, well-documented Java code• GitHub-ready project structure
+1. Compile the project:
+   - If the code files are in the default (no package) layout:
+     - javac -d out src/**/*.java
+   - If files use packages, ensure you compile with the correct source path or use an IDE/build tool (Maven/Gradle).
 
-  
+2. Run:
+   - java -cp out Main <reference_fasta> <unknown_fasta>
+   - Example:
+     - java -cp out Main sample_data/resistance_genes.fasta sample_data/unknown_sequence.fasta
 
-**Input Files**
+Notes:
+- Replace `out` and `Main` with your actual compiled output directory and fully qualified main class name if packaged.
+- If you use an IDE (IntelliJ/Eclipse) you can import as a Java project and run the `Main` class.
 
-  
+---
 
-1.  Reference Resistance Genes (FASTA)
+## Command line examples
 
-  
+Example run using the included sample data:
 
-A FASTA file containing one or more known antibiotic resistance genes.
+- Compile:
+  - javac -d out src/io/*.java src/model/*.java src/analysis/*.java src/visualization/*.java src/Main.java
+- Run:
+  - java -cp out Main sample_data/resistance_genes.fasta sample_data/unknown_sequence.fasta
 
-  
-
-Example:
-
-  
-
-\> esterase\\\_AATGACCGTTGAC...
-
-  
-
-1.  Unknown DNA Sequence (FASTA)
-
-  
-
-A FASTA file containing the unknown sequence to be analyzed.
-
-  
-
-Example:
-
-  
-
-\> unknown\\\_sampleATGCGATCGATCG...
-
-  
-
-**Output Files**
-
-  
-
-Text Summary Output
-
-  
-
-The program generates a results\\\_summary.txt file containing:
-
-  
-
-Resistance Gene Detection Report
-
-\--------------------------------
-
-  
-
-Total reference genes: 10Detected genes: 3
-
-  
-
-Gene: esterase\\\_AMatches found: 5Longest match: 87 bp
-
-  
-
-**Visual Output (Terminal)**
-
-  
-
-The program generates an ASCII bar chart representing the longest match length per gene:
-
-  
+Expected console output (example):
 
 Resistance Gene Match Strength
+------------------------------
+esterase_A         | ████████████████ (87 bp)
+kdr_mutation_1     | ████████ (45 bp)
+ace_gene           | ██████████ (62 bp)
 
-\------------------------------
+A `results_summary.txt` file will be written to the `output/` directory summarizing matches and statistics.
 
-  
+---
 
-esterase\\\_A | ████████████████ (87 bp)kdr\\\_mutation\\\_1 | ████████ (45 bp)ace\\\_gene | ██████████ (62 bp)
+## Input formats
 
-  
+Both inputs must be in FASTA format.
 
-**Program Workflow**
+Reference FASTA (one or more genes):
+> \>gene_name  
+> ATGCGT...  
 
-  
+Unknown sequence FASTA (single or multiple sequences supported based on implementation):
+> \>unknown_sample  
+> ATGCGATCGATC...
 
-The program follows the pipeline below:
+---
 
-  
+## Output files and visualization
 
-Load reference FASTA fileLoad unknown FASTA fileParse sequencesGenerate k-mersSearch for matchesScore matchesGenerate text reportGenerate ASCII visualization
+- `output/results_summary.txt` — human-readable text summary with:
+  - Total reference genes
+  - Number of detected genes
+  - Per-gene: matches found, longest match length
 
-  
+- `output/gene_match_counts.csv` — optional CSV with per-gene counts (if implemented)
 
-**Project Structure**
+- Terminal ASCII visualization — horizontal bars showing longest match length per gene
 
-  
+Example excerpt from `results_summary.txt`:
 
-The project is organized into the following directory structure:
+Resistance Gene Detection Report
+-------------------------------
+Total reference genes: 10
+Detected genes: 3
 
-  
+Gene: esterase_A
+  Matches found: 5
+  Longest match: 87 bp
 
-src/io/FastaReader.javaFileWriterUtil.java
+---
 
-  
+## How it works (brief)
 
-model/GeneMatchResult.java
+1. Parse the reference FASTA file and create k-mer sets for each reference gene.
+2. Parse the unknown FASTA sequence(s) and generate k-mers from the query.
+3. Compare query k-mers to reference gene k-mers to detect matches.
+4. Score and summarize matches per gene (match counts, longest contiguous match).
+5. Write a textual report and render an ASCII bar chart for quick interpretation.
 
-  
+K-mer matching is fast and memory-efficient but is a heuristic — it approximates similarity and can miss more complex variants or structural differences.
 
-analysis/KmerGenerator.javaSequenceMatcher.javaMatchScorer.java
+---
 
-  
+## Configuration & tuning
 
-visualization/AsciiBarChart.java
+- K-mer size (k) affects sensitivity and specificity:
+  - Smaller k → more sensitive, more false positives
+  - Larger k → more specific, may miss shorter matches
+- If the code exposes parameters (constants or CLI flags), adjust k and thresholds to suit your data size and expected similarity.
+- For large datasets, consider streaming, indexing, or using a more optimized tool/library for scalability.
 
-  
+---
 
-Main.java
+## Limitations & disclaimer
 
-  
+- Educational tool: not validated for clinical/diagnostic decisions.
+- Results are approximate; use specialized tools (e.g., BLAST, DIAMOND, AMRFinder) for rigorous analyses.
+- Short k-mers can produce false positives; long indels or rearrangements won't be detected reliably.
 
-sample\\\_data/resistance\\\_genes.fastaunknown\\\_sequence.fasta
+---
 
-  
+## Contributing
 
-output/results\\\_summary.txtgene\\\_match\\\_counts.csv
+Contributions, bug reports, and feature requests are welcome.
 
-  
+- Fork the repo
+- Create a branch: feature/my-change
+- Make changes, add tests if applicable
+- Open a pull request with a clear description
 
-**How to Run**
+Please follow standard Java style and include comments where appropriate.
 
-  
+---
 
-1.  Compile the program using the Java compiler.
+## License
 
-2.  Run the program by providing the reference FASTA file and unknown FASTA file as input arguments.
+This project is provided for educational purposes. If you’d like an explicit license (e.g., MIT), add a `LICENSE` file and include a license badge here. Example: MIT License.
 
-3.  View results in the terminal and in the output directory.
+---
 
-  
+## Acknowledgements & data sources
 
-**Data Sources**
+- Reference sequences used in sample data were obtained from publicly available biological databases for educational use. Please cite original sources when using real datasets.
 
-  
+---
 
-Reference resistance gene sequences were obtained from publicly available biological databases for educational use.
+## Contact
 
-  
+Maintainer: @tylermaire  
+Repository: https://github.com/tylermaire/ResistPipe
 
-**Acknowledgments**
+---
 
-  
-
-Reference sequences were sourced from publicly available biological databases.This project was developed independently for educational purposes.External resources used are acknowledged in code comments where applicable.
-
-  
-
-**Disclaimer**
-
-  
-
-This software is intended for educational and research use only. It is not designed for clinical or diagnostic applications.
+If you'd like, I can:
+- Commit this README to a new branch and open a PR, or
+- Update the README directly in the repo (tell me which you prefer).
