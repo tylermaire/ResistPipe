@@ -198,7 +198,7 @@ Please follow standard Java style and include comments where appropriate.
 
 ## License
 
-This project is provided for educational purposes. If you’d like an explicit license (e.g., MIT), add a `LICENSE` file and include a license badge here. Example: MIT License.
+This project is provided for educational purposes.
 
 ---
 
